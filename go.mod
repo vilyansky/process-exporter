@@ -1,4 +1,4 @@
-module github.com/ncabatoff/process-exporter
+module github.com/vilyansky/process-exporter
 
 go 1.21
 

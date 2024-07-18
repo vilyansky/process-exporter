@@ -12,15 +12,15 @@ import (
 	"time"
 
 	"github.com/ncabatoff/fakescraper"
-	common "github.com/ncabatoff/process-exporter"
-	"github.com/ncabatoff/process-exporter/collector"
-	"github.com/ncabatoff/process-exporter/config"
 	"github.com/prometheus/client_golang/prometheus"
 	verCollector "github.com/prometheus/client_golang/prometheus/collectors/version"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/common/promlog"
 	promVersion "github.com/prometheus/common/version"
 	"github.com/prometheus/exporter-toolkit/web"
+	common "github.com/vilyansky/process-exporter"
+	"github.com/vilyansky/process-exporter/collector"
+	"github.com/vilyansky/process-exporter/config"
 )
 
 // Version is set at build time use ldflags.
@@ -196,6 +196,8 @@ func main() {
 	}
 
 	var matchnamer common.MatchNamer
+	var extralabels map[string]string
+	var cfg config.Config
 
 	if *configPath != "" {
 		if *nameMapping != "" || *procNames != "" {
@@ -207,9 +209,13 @@ func main() {
 			log.Fatalf("error reading config file %q: %v", *configPath, err)
 		}
 		log.Printf("Reading metrics from %s based on %q", *procfsPath, *configPath)
+
 		matchnamer = cfg.MatchNamers
+		extralabels = cfg.ExtraLabels
+
 		if *debug {
 			log.Printf("using config matchnamer: %v", cfg.MatchNamers)
+			log.Printf("using config extra_labels: %v", cfg.ExtraLabels)
 		}
 	} else {
 		namemapper, err := parseNameMapper(*nameMapping)
@@ -248,6 +254,7 @@ func main() {
 			Recheck:          *recheck,
 			RecheckTimeLimit: *recheckTimeLimit,
 			Debug:            *debug,
+			ExtraLabels:      extralabels,
 		},
 	)
 	if err != nil {

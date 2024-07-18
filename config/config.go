@@ -11,7 +11,7 @@ import (
 	"text/template"
 	"time"
 
-	common "github.com/ncabatoff/process-exporter"
+	common "github.com/vilyansky/process-exporter"
 	"gopkg.in/yaml.v2"
 )
 
@@ -178,12 +178,14 @@ func (m andMatcher) Match(nacl common.ProcAttributes) bool {
 
 type Config struct {
 	MatchNamers FirstMatcher
+	ExtraLabels map[string]string `yaml:"extra_labels"`
 }
 
 func (c *Config) UnmarshalYAML(unmarshal func(v interface{}) error) error {
 	type (
 		root struct {
-			Matchers MatcherRules `yaml:"process_names"`
+			Matchers    MatcherRules      `yaml:"process_names"`
+			ExtraLabels map[string]string `yaml:"extra_labels"`
 		}
 	)
 
@@ -191,11 +193,13 @@ func (c *Config) UnmarshalYAML(unmarshal func(v interface{}) error) error {
 	if err := unmarshal(&r); err != nil {
 		return err
 	}
-
+	//log.Printf("unmarshal(&r), %v", r)
 	cfg, err := r.Matchers.ToConfig()
+	//log.Printf("r.Matchers.ToConfig: %v", cfg)
 	if err != nil {
 		return err
 	}
+	cfg.ExtraLabels = r.ExtraLabels
 	*c = *cfg
 	return nil
 }
@@ -282,10 +286,13 @@ func ReadFile(cfgpath string, debug bool) (*Config, error) {
 
 // GetConfig extracts Config from content by parsing it as YAML.
 func GetConfig(content string, debug bool) (*Config, error) {
+	//log.Printf("GetConfig")
 	var cfg Config
+	//log.Printf("before yaml.Unmarshal: %s", cfg)
 	err := yaml.Unmarshal([]byte(content), &cfg)
 	if err != nil {
 		return nil, err
 	}
+	//log.Printf("after unmarshal: %v", &cfg)
 	return &cfg, nil
 }

@@ -41,6 +41,10 @@ build:
 	@echo ">> building code"
 	cd cmd/process-exporter; CGO_ENABLED=0 go build -ldflags "$(VERSION_LDFLAGS)" -o ../../process-exporter -a -tags netgo
 
+build-debug:
+	@echo ">> building debug"
+	cd cmd/process-exporter; CGO_ENABLED=0 go build -gcflags="all=-N -l" -o ../../process-exporter -a -tags netgo
+
 smoke:
 	@echo ">> smoke testing process-exporter"
 	./process-exporter $(SMOKE_TEST)
